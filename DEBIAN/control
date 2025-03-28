@@ -1,0 +1,11 @@
+Package: arducam-nvidia-l4t-kernel
+Version: 5.15.148-tegra-36.4.3-20250124133829
+Architecture: arm64
+Maintainer: NVIDIA Corporation
+Installed-Size: 93161
+Pre-Depends: nvidia-l4t-core (>> 36.4-0), nvidia-l4t-core (<< 36.5-0)
+Depends: nvidia-l4t-kernel (= 5.15.148-tegra-36.4.3-20250107174145)
+Section: kernel
+Priority: standard
+Homepage: http://developer.nvidia.com/jetson
+Description: NVIDIA Kernel Package

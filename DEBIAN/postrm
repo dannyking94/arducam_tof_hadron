@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# set -x
+
+pushd /boot/extlinux &> /dev/null
+
+EXTLINUX=$(ls extlinux.conf_bak)
+
+if [ -n "${EXTLINUX}" ]; then
+	mv ${EXTLINUX} extlinux.conf
+	popd &> /dev/null
+fi
+
+pushd /boot &> /dev/null
+
+IMAGE=$(ls Image.bak)
+
+if [ -n "${IMAGE}" ]; then
+    mv ${IMAGE} Image
+    popd &> /dev/null
+fi
+
+camera_driver_path=/lib/modules/$(uname -r)/kernel/drivers/media/i2c/
+pushd $camera_driver_path &> /dev/null
+NV_IMX477=$(ls nv_imx477.ko.bak)
+if [ -n "${NV_IMX477}" ]; then
+        mv ${NV_IMX477} nv_imx477.ko
+        popd &> /dev/null
+fi
+
+exit 0
+

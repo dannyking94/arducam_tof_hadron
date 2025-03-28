@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# set -x
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+pushd /boot/extlinux &> /dev/null
+
+EXTLINUX=$(ls extlinux.conf)
+
+if [ -n "${EXTLINUX}" ]; then
+        if [ ! -e ${EXTLINUX}_bak ]; then
+                cp ${EXTLINUX} ${EXTLINUX}_bak
+        fi
+        
+        oldS=$(cat /boot/arducam/extlinux.conf | grep -E -m 1 "^\s*APPEND.*?root=.*?")
+        newS=$(cat ${EXTLINUX} | grep -E -m 1 "^\s*APPEND.*?root=.*?")
+        sed -i "/^\s*APPEND/c\\${newS}" /boot/arducam/extlinux.conf
+        
+        cp /boot/arducam/extlinux.conf ${EXTLINUX}
+        popd &> /dev/null
+fi
+
+pushd /boot &> /dev/null
+IMAGE=$(ls Image)
+
+if [ -n "${IMAGE}" ]; then
+        if [ ! -e ${IMAGE}.bak ]; then
+                cp ${IMAGE} ${IMAGE}.bak
+        fi
+        popd &> /dev/null
+fi
+
+camera_driver_path=/lib/modules/$(uname -r)/updates/drivers/media/i2c/
+pushd $camera_driver_path &> /dev/null
+NV_IMX477=$(ls nv_imx477.ko)
+if [ -n "${NV_IMX477}" ]; then
+        if [ ! -e ${NV_IMX477}.bak ]; then
+                mv ${NV_IMX477} ${NV_IMX477}.bak
+        fi
+        popd &> /dev/null
+fi
+
+mv /boot/arducam/tegra-camera.ko /lib/modules/5.15.148-tegra/updates/drivers/media/platform/tegra/camera/tegra-camera.ko
+mv /boot/arducam/nv_imx477.ko $camera_driver_path
+mv /boot/arducam/arducam_csi2.ko $camera_driver_path
+depmod -a
+
+/opt/arducam/jetson-io/config-by-hardware.py -n 2="Camera ARDUCAM Dual" &> /tmp/arducam_error.log
+if [ $? -ne 0 ]; then
+echo ""
+cat /tmp/arducam_error.log
+rm -rf /tmp/arducam_error.log
+echo -e "${RED}An unknown error occurred while installing dtoverlays.${NC}"
+exit -1
+fi
+
+exit 0
